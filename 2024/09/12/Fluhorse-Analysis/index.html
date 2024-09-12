@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        k0m1
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Fluhorse_Analysis
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <h1 id="Fluhorse"><a href="#Fluhorse" class="headerlink" title="Fluhorse"></a>Fluhorse</h1><p>SHA256 Hash: <code>2c05efa757744cb01346fe6b39e9ef8ea2582d27481a441eb885c5c4dcd2b65b</code></p>
+<p>Package Name: <code>com.dsfdgfd.sdfsdf</code></p>
+<h3 id="Analysis"><a href="#Analysis" class="headerlink" title="Analysis"></a>Analysis</h3><ul>
+<li><p>Entrypoint → <code>com.hwgapkspv.gouhwkh.BQddpmHvTsWgSIexmtrw</code></p>
+</li>
+<li><p>Unzips the apk into the directory  <code>app_JKnBkiqZbmLnxDv/HIFlFQ</code></p>
+</li>
+<li><p>iterates the list of all files present in that directory and checks for <code>classes.dex</code></p>
+</li>
+<li><p>its path is passed to function <code>oyerm832343dfmdsx0d</code>  , where its contents are read and stored in an array</p>
+</li>
+<li><p>This array is passed to another function <code>odgnstswehaxibqwemcbvd</code> where,</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">odgnstswehaxibqwemcbvd</span><span class="params">(<span class="type">byte</span>[] bArr, String path)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">ablen</span> <span class="operator">=</span> bArr.length;</span><br><span class="line">        <span class="type">byte</span>[] dexlen = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">4</span>];</span><br><span class="line">        System.arraycopy(bArr, ablen - <span class="number">4</span>, dexlen, <span class="number">0</span>, <span class="number">4</span>);</span><br><span class="line">        <span class="type">ByteArrayInputStream</span> <span class="variable">bais</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(dexlen);</span><br><span class="line">        <span class="type">DataInputStream</span> <span class="variable">in</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DataInputStream</span>(bais);</span><br><span class="line">        <span class="type">int</span> <span class="variable">readInt</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">        System.out.println(Integer.toHexString(readInt));</span><br><span class="line">        <span class="type">byte</span>[] newdex = <span class="keyword">new</span> <span class="title class_">byte</span>[readInt];</span><br><span class="line">        System.arraycopy(bArr, (ablen - <span class="number">4</span>) - readInt, newdex, <span class="number">0</span>, readInt);</span><br><span class="line">        <span class="type">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(path);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">FileOutputStream</span> <span class="variable">localFileOutputStream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(file);</span><br><span class="line">            localFileOutputStream.write(newdex);</span><br><span class="line">            localFileOutputStream.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException localIOException) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(localIOException);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>It seems in this dex file, size is stored in its last 4 bytes which is getting stored in <code>dexlen</code> array</p>
+</li>
+<li><p>Checking in a hex editor</p>
+<p>  <img src="/../images/fluhorse/image.png" alt="image.png"></p>
+<p>  <img src="/../images/fluhorse/image1.png" alt="image1.png"></p>
+</li>
+<li><p>The value retrieved is 304592</p>
+</li>
+<li><p>In <code>System.arraycopy(bArr, (ablen - 4) - readInt, newdex, 0, readInt);</code></p>
+<ul>
+<li>they are reading bytes from <code>len(data)-4-304592</code> and writing its contents to another file called <code>classes.dex.dex</code></li>
+</ul>
+<p>  <img src="/../images/fluhorse/image2.png" alt="image2.png"></p>
+</li>
+</ul>
+<p>  Lets use their Java implementation to extract the payload.</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileNotFoundException;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.DataInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">dex</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">byte</span>[] read_classes_dex(File f) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">FileInputStream</span> <span class="variable">fis</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileInputStream</span>(f);</span><br><span class="line">            <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">            <span class="type">byte</span>[] b = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span>];</span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> fis.read(b);</span><br><span class="line">                <span class="keyword">if</span> (n != -<span class="number">1</span>) &#123;</span><br><span class="line">                    bos.write(b, <span class="number">0</span>, n);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    fis.close();</span><br><span class="line">                    bos.close();</span><br><span class="line">                    <span class="type">byte</span>[] bytes = bos.toByteArray();</span><br><span class="line">                    <span class="keyword">return</span> bytes;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (FileNotFoundException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e2) &#123;</span><br><span class="line">            e2.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">extract_bytes</span><span class="params">(<span class="type">byte</span>[] bArr, String path)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">ablen</span> <span class="operator">=</span> bArr.length;</span><br><span class="line">        <span class="type">byte</span>[] dexlen = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">4</span>];</span><br><span class="line">        System.arraycopy(bArr, ablen - <span class="number">4</span>, dexlen, <span class="number">0</span>, <span class="number">4</span>);</span><br><span class="line">        <span class="type">ByteArrayInputStream</span> <span class="variable">bais</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(dexlen);</span><br><span class="line">        <span class="type">DataInputStream</span> <span class="variable">in</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DataInputStream</span>(bais);</span><br><span class="line">        <span class="type">int</span> <span class="variable">readInt</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">        System.out.println(Integer.toHexString(readInt));</span><br><span class="line">        <span class="type">byte</span>[] newdex = <span class="keyword">new</span> <span class="title class_">byte</span>[readInt];</span><br><span class="line">        System.arraycopy(bArr, (ablen - <span class="number">4</span>) - readInt, newdex, <span class="number">0</span>, readInt);</span><br><span class="line">        <span class="type">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(path);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">FileOutputStream</span> <span class="variable">localFileOutputStream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(file);</span><br><span class="line">            localFileOutputStream.write(newdex);</span><br><span class="line">            localFileOutputStream.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException localIOException) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(localIOException);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">File</span> <span class="variable">f</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(<span class="string">&quot;classes.dex&quot;</span>);</span><br><span class="line">        extract_bytes(read_classes_dex(f), <span class="string">&quot;new&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>Once extracted, the path is passed to function <code>bhwi8sma09d23ssva</code> , where the contents of <code>classes.dex.dex</code> are passed to native function <code>abcdesCrypt</code> defined in <code>apksadfsalkwes</code> library.</p>
+</li>
+<li><p>Opening the library in Ghidra and fixing the function arguments we could see,</p>
+<p>  <img src="/../images/fluhorse/image3.png" alt="image.png"></p>
+</li>
+<li><p>We could notice function calls like <code>EVP_CIPHER_CTX_init</code> , <code>EVP_aes_128_cbc</code></p>
+</li>
+<li><p>Checking in google explained that these functions are defined in <code>libssl.so</code> .</p>
+</li>
+<li><p>That explains why there is a <code>libssl.so</code> in <code>lib/arm64-v8a</code> .</p>
+</li>
+<li><p>In <code>EVP_DecryptInit_ex</code> , we could 2 arguments named <code>AES_SECRET_KEY</code> and <code>AES_IV</code></p>
+</li>
+<li><p>It seems both values are same as <code>j2K10uXshMh9UGPS</code>  and AES mode used here is <code>CBC</code></p>
+</li>
+<li><p>Let’s decode the extracted payload using the above information</p>
+</li>
+</ul>
+  <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES </span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;new&#x27;</span>,<span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = f.read()</span><br><span class="line"></span><br><span class="line">key = iv = <span class="string">b&#x27;j2K10uXshMh9UGPS&#x27;</span></span><br><span class="line"></span><br><span class="line">c = AES.new(key,AES.MODE_CBC,iv)</span><br><span class="line">x = c.decrypt(data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;decrypted&#x27;</span>,<span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> d:</span><br><span class="line">    d.write(x)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>We are having a zip file, which on unzipping provides <code>classes_ogr.dex</code> .</li>
+<li>But when looking into <code>classes_ogr.dex</code> , not much implementation is provided, hence we need to turn our attention towards <code>libapp.so</code> and <a target="_blank" rel="noopener" href="http://libflutter.so/"><code>libflutter.so</code></a></li>
+</ul>
+</li>
+</ul>
+<h3 id="Flutter-Analysis"><a href="#Flutter-Analysis" class="headerlink" title="Flutter Analysis"></a>Flutter Analysis</h3><ul>
+<li><p>Let’s get some detailed some information regarding this sample using <code>blutter</code></p>
+</li>
+<li><p>Once it has been analyzed, let’s check <code>pp.txt</code> , to see all objects used in this application</p>
+</li>
+<li><p>On searching for any links using the regex <code>(http|https)://</code> led us to an interesting url → <a target="_blank" rel="noopener" href="https://pmm122.com/"><code>https://pmm122.com/</code></a></p>
+</li>
+<li><p>This link has been marked malicious by Fortinet</p>
+</li>
+<li><p>On checking for cross-references for this string, it points towards <code>sms_flutter/api/login.dart</code>  and the method is <code>async_op</code></p>
+</li>
+<li><p>Package <code>sms_flutter</code> seems to be the package that implements the malicious activity. It consists of</p>
+<ul>
+<li><code>main.dart</code></li>
+<li><code>api/login.dart</code></li>
+<li><code>views/webifrview.dart</code></li>
+</ul>
+</li>
+<li><p>According to the analysis → it seems <code>main.dart</code> seems the entrypoint to the application that has methods like <code>onBackgroundMessage</code>. </p>
+</li>
+<li><p>In <code>api/login.dart</code></p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// 0x29e884: r16 = &quot;https://pmm122.com/&quot;</span><br><span class="line">//     0x29e884: add             x16, PP, #8, lsl #12  ; [pp+0x8f58] &quot;https://pmm122.com/&quot;</span><br><span class="line">//     0x29e888: ldr             x16, [x16, #0xf58]</span><br><span class="line">// 0x29e88c: r30 = &quot;/addcontent3&quot;</span><br><span class="line">//     0x29e88c: add             lr, PP, #8, lsl #12  ; [pp+0x8f60] &quot;/addcontent3&quot;</span><br><span class="line">//     0x29e890: ldr             lr, [lr, #0xf60]</span><br><span class="line">// 0x29e894: stp             lr, x16, [SP, #-0x10]!</span><br><span class="line">// 0x29e898: r0 = +()</span><br><span class="line">//     0x29e898: bl              #0x157310  ; [dart:core] _StringBase::+</span><br><span class="line">// 0x29e89c: add             SP, SP, #0x10</span><br><span class="line">// 0x29e8a0: SaveReg r0</span><br><span class="line">//     0x29e8a0: str             x0, [SP, #-8]!</span><br></pre></td></tr></table></figure>
+<ul>
+<li>We could see that they are preparing the url [<code>https://pmm122.com/](https://pmm122.com/)addcontent3</code> and are further analysis shows us preparation for strings like content-type , application&#x2F;x-www-form-urlencoded and post.</li>
+</ul>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 0x29e984: r0 = post()</span><br><span class="line">//     0x29e984: bl              #0x2a90d4  ; [package:http/http.dart] ::post</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Using <a target="_blank" rel="noopener" href="http://http.post/"><code>http.post</code></a> , they are possibly sending the collected sms to the server</li>
+</ul>
+</li>
+<li><p>In <code>views/webifrview.dart</code></p>
+<ul>
+<li>function <code>requestPermiss</code> calls <code>async_op</code> which requests for sms permission</li>
+<li>During initialization of this class<ul>
+<li><code>Telephony::_instance</code> is called</li>
+<li><code>requestPermiss</code> is called</li>
+<li><code>Telephony::listenIncomingSms</code> is called</li>
+</ul>
+</li>
+</ul>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 0x29e364: r30 = &quot;https://www.rakten.net/&quot;</span><br><span class="line">//  0x29e364: add             lr, PP, #8, lsl #12  ; [pp+0x8ea8] &quot;https://www.rakten.net/&quot;</span><br><span class="line">//  0x29e368: ldr             lr, [lr, #0xea8]</span><br><span class="line">//  0x29e36c: stp             lr, x16, [SP, #-0x10]!</span><br><span class="line">// 0x29e370: r0 = loadUrl()</span><br></pre></td></tr></table></figure>
+<ul>
+<li>We could say that this webview is loading <a target="_blank" rel="noopener" href="https://www.rakten.net/"><code>https://www.rakten.net/</code></a> in its webview using <code>loadUrl</code></li>
+</ul>
+</li>
+<li><p>The Telephony implementations are provided by <a target="_blank" rel="noopener" href="https://telephony.shounakmulay.dev/">https://telephony.shounakmulay.dev/</a></p>
+<ul>
+<li><code>listenIncomingSms</code> → acts like a pseudo- Broadcast receiver in the sense that this function works whenever we receive a message.</li>
+<li><code>Telephony::_instance</code> → returns a new Telephony object.</li>
+</ul>
+</li>
+</ul>
+<p>We could see how this Telephony Implementation has been used on the Android side.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">receiver</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;com.shounakmulay.telephony.sms.IncomingSmsReceiver&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:permission</span>=<span class="string">&quot;android.permission.BROADCAST_SMS&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:exported</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:initOrder</span>=<span class="string">&quot;1048&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:name</span>=<span class="string">&quot;android.provider.Telephony.SMS_RECEIVED&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:initOrder</span>=<span class="string">&quot;1048&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>We could see how this has been utilized as a Broadcast Receiver to process whenever a message is received. </p>
+<h3 id="Ending-Points"><a href="#Ending-Points" class="headerlink" title="Ending Points"></a>Ending Points</h3><ul>
+<li>This has been an interesting sample to analyze due to its unique dex payload encryption.</li>
+<li>This is my first time analyzing a Flutter malware sample. </li>
+<li>I would also recommend to check the article by <a target="_blank" rel="noopener" href="https://www.fortinet.com/blog/threat-research/fortinet-reverses-flutter-based-android-malware-fluhorse">Fortinet</a> for more detailed information.</li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
