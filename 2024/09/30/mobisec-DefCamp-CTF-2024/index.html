@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        k0m1
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            mobisec-DefCamp_CTF_2024
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p><strong>Author</strong>: Ephvuln<br><strong>Category</strong>: Mobile, Web<br><strong>Points</strong>: 280<br><strong>Solves</strong>: 44</p>
+<ul>
+<li><p>We are given an apk and a wordlist containing UUIDs (Universally Unique Identifier)</p>
+</li>
+<li><p>First, we need to provide the Current Instance IP and Port to the application</p>
+</li>
+<li><p>Looking at the analysis, </p>
+<ul>
+<li><p>The challenge has 2 API endpoints, <code>/api/v1/acc/pass/</code> and <code>/api/v1/sec/</code></p>
+</li>
+<li><p>In the application, they have 2 EditText fields, one for Password and another for SecretText</p>
+</li>
+<li><p>In <code>/api/v1/acc/pass/</code>, it will verify the password we entered by comparing the hash returned by the server for the correspoding UUID<br>  with the SHA256 Hash of the concatenated string <code>LbhXabjVaCenpgvprFnygfNerHavdhrylTrarengrqSbeRirelCnffOhgVzGbbYnmlGbPbqrGung:)</code> and the password we entered</p>
+<p>  <img src="/../images/defcamp24/image1.png" alt="Image1.png"></p>
+</li>
+<li><p>So, first we need to determine the valid UUIDs and their corresponding hash with the given attachment wordlist.</p>
+</li>
+</ul>
+  <figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;wordlist.txt&quot;</span>,<span class="string">&quot;r&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = f.readlines()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> data:</span><br><span class="line">    i = i.strip()</span><br><span class="line">    r = requests.get(<span class="string">f&quot;url/api/v1/acc/pass/<span class="subst">&#123;i&#125;</span>&quot;</span>, headers=&#123;<span class="string">&quot;X-MOBISEC&quot;</span>:<span class="string">&quot;ef75826d9de13292593aa57f82a7763d&quot;</span>,<span class="string">&quot;Accept&quot;</span>:<span class="string">&quot;application/json&quot;</span>&#125;)</span><br><span class="line">    d = r.json()</span><br><span class="line">    <span class="keyword">if</span> d[<span class="string">&#x27;secret&#x27;</span>][<span class="string">&#x27;hash&#x27;</span>] != <span class="string">&quot;&quot;</span>:</span><br><span class="line">        <span class="built_in">print</span>(d,i)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>We got </p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#x27;secret&#x27;: &#123;&#x27;hash&#x27;: &#x27;77518b39e620ac271bfc58639796160cb3984af0a3e5f4367230ad768855e8e7&#x27;&#125;&#125; c8d8a726-a7c2-4b13-98a4-15f9c3831ef4</span><br><span class="line">&#123;&#x27;secret&#x27;: &#123;&#x27;hash&#x27;: &#x27;87bcb0554d72bd277ae6c2795b8e09e03c56ed4314352449c3d371b70cdc1ea8&#x27;&#125;&#125; f79dd76f-2ce4-420f-bf46-f0ba82af04fb</span><br><span class="line">&#123;&#x27;secret&#x27;: &#123;&#x27;hash&#x27;: &#x27;e045171f3d3d93ee538b4673f7b5184bfd7d9eaa200f29f81ae1b7123a32ebca&#x27;&#125;&#125; 4d1713c1-ef9e-46b1-9fee-9ac57d4180b8</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Now, we need to find the password associated with these hashes by bruteforcing with rockyou.txt</p>
+</li>
+</ul>
+  <figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;rockyou.txt&quot;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;utf-8&#x27;</span>, errors=<span class="string">&#x27;ignore&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = f.readlines()</span><br><span class="line"></span><br><span class="line">count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> data:</span><br><span class="line">    i = i.strip()</span><br><span class="line">    combine = <span class="string">&quot;LbhXabjVaCenpgvprFnygfNerHavdhrylTrarengrqSbeRirelCnffOhgVzGbbYnmlGbPbqrGung:)&quot;</span>+i</span><br><span class="line">    hs = hashlib.sha256(combine.encode()).hexdigest()</span><br><span class="line">    <span class="keyword">if</span> hs == <span class="string">&quot;77518b39e620ac271bfc58639796160cb3984af0a3e5f4367230ad768855e8e7&quot;</span> <span class="keyword">or</span> hs == <span class="string">&quot;87bcb0554d72bd277ae6c2795b8e09e03c56ed4314352449c3d371b70cdc1ea8&quot;</span> <span class="keyword">or</span> hs == <span class="string">&quot;e045171f3d3d93ee538b4673f7b5184bfd7d9eaa200f29f81ae1b7123a32ebca&quot;</span>:</span><br><span class="line">        <span class="built_in">print</span>(i,hs)</span><br><span class="line">        count+=<span class="number">1</span></span><br><span class="line">        <span class="keyword">if</span> count == <span class="number">3</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>We got </p>
+  <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">killerpink007 e045171f3d3d93ee538b4673f7b5184bfd7d9eaa200f29f81ae1b7123a32ebca</span><br><span class="line">SHALLOWgrounds13 87bcb0554d72bd277ae6c2795b8e09e03c56ed4314352449c3d371b70cdc1ea8</span><br><span class="line">86390627 77518b39e620ac271bfc58639796160cb3984af0a3e5f4367230ad768855e8e7</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Now, on checking what the server provides us at <code>/api/v1/sec/</code>, we will get an encrypted text.</p>
+</li>
+</ul>
+<p>  <img src="/../images/defcamp24/image2.png" alt="Image2.png"></p>
+<ul>
+<li>Here are the encrypted texts corresponding to the UUIDs.</li>
+</ul>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">c8d8a726-a7c2-4b13-98a4-15f9c3831ef4 -&gt; 0SlT+QWWG+6A3gxxUey87oIUHxmB2Hpex4cB2kDZz6ONVLCYHgJBuNgfIWceh0WF8VUGkUhOkDemH4XcSyYRFdtwXzHE6EkkEbGu</span><br><span class="line">f79dd76f-2ce4-420f-bf46-f0ba82af04fb -&gt; xk9xj6E3f5pSHQjsmBOe2DoYegnOMyk1ej90DJrkBLKQjugbyaC0pG8Pb2xn5W//Q4fg/pt6nmj8wjlGkYAJGahbzwSoX+NGShZFivYLfkb4Zs7TY9HKs96p5KuzEY/GxUo67vg=</span><br><span class="line">4d1713c1-ef9e-46b1-9fee-9ac57d4180b8 -&gt; 2mLZZaw/Wq6Ppo1E6uyDeRioC/RpLk2Hj+t0/+F+lFJyc3GnTwjeBqAHFIQS8q4lzFE=</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Inorder to decrypt them, the challenge description mentions how the encrypted text is split into<br> <strong>nonce, tag, ciphertext &#x3D; encrypted_data[:16], encrypted_data[16:32], encrypted_data[32:]</strong></li>
+<li>On using the text and password pair, <code>SHALLOWgrounds13</code> and <code>xk9xj6E3f5pSHQjsmBOe2DoYegnOMyk1ej90DJrkBLKQjugbyaC0pG8Pb2xn5W//Q4fg/pt6nmj8wjlGkYAJGahbzwSoX+NGShZFivYLfkb4Zs7TY9HKs96p5KuzEY/GxUo67vg=</code>, we get the flag</li>
+</ul>
+  <figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">from</span> Crypto.Protocol.KDF <span class="keyword">import</span> PBKDF2</span><br><span class="line"><span class="keyword">from</span> Crypto.Hash <span class="keyword">import</span> SHA256</span><br><span class="line"><span class="keyword">from</span> Crypto.Random <span class="keyword">import</span> get_random_bytes</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">J</span>(<span class="params">password, data</span>):</span><br><span class="line">    salt = <span class="string">b&quot;0123456789abcdef&quot;</span></span><br><span class="line"></span><br><span class="line">    key = PBKDF2(password, salt, dkLen=<span class="number">32</span>, count=<span class="number">100000</span>)</span><br><span class="line"></span><br><span class="line">    nonce = data[:<span class="number">16</span>]</span><br><span class="line">    ciphertext_and_tag = data[<span class="number">16</span>:]</span><br><span class="line">    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)</span><br><span class="line">    </span><br><span class="line">    plaintext = cipher.decrypt_and_verify(ciphertext_and_tag[<span class="number">16</span>:], ciphertext_and_tag[:<span class="number">16</span>])</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> plaintext</span><br><span class="line"></span><br><span class="line">password = <span class="string">b&quot;SHALLOWgrounds13&quot;</span></span><br><span class="line"></span><br><span class="line">ciphertext = base64.b64decode(<span class="string">&quot;xk9xj6E3f5pSHQjsmBOe2DoYegnOMyk1ej90DJrkBLKQjugbyaC0pG8Pb2xn5W//Q4fg/pt6nmj8wjlGkYAJGahbzwSoX+NGShZFivYLfkb4Zs7TY9HKs96p5KuzEY/GxUo67vg=&quot;</span>)</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    decrypted_data = J(password, ciphertext)</span><br><span class="line">    <span class="built_in">print</span>(decrypted_data)</span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Decryption failed: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>  Flag: <code>CTF&#123;77cd55d22ef0d516a45ed0e238fbc5dbc4c93b0824047ea3e0a0509a5a9735ac&#125;</code></p>
+</li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
