@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        k0m1
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            blockCTF-2024
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <h3 id="FlowerApp"><a href="#FlowerApp" class="headerlink" title="FlowerApp"></a>FlowerApp</h3><p><strong>Catgeory</strong>: Reversing<br><strong>Points</strong>: 200<br><strong>Solves</strong>: 17</p>
+<ul>
+<li>This is an iOS application built using SwiftUI. </li>
+<li>The Mach-O binary lies in <code>flowerapp.app/Contents/MacOS</code> directory.</li>
+<li>On opening the binary in IDA, could notice user-defined functions like <strong>loadf</strong> , <strong>cc</strong> , <strong>drawFlower</strong></li>
+<li>In Exteral symbols, I could notice references to CCCrypt which is Apple’s CommonCrypto framework. </li>
+<li>Starting with function loadf, <ul>
+<li><p>they have loading some base64-encoded data stored in <a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/foundation/nsuserdefaults">NSUserDefaults</a> with keys “a”, “b” and “c” . </p>
+  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">v82 = (id)objc_opt_self(&amp;OBJC_CLASS___NSUserDefaults);</span><br><span class="line">   v5 = objc_msgSend(v82, <span class="string">&quot;standardUserDefaults&quot;</span>);</span><br><span class="line">   v6 = objc_retainAutoreleasedReturnValue(v5);</span><br><span class="line">   v7 = (<span class="type">void</span> *)String._bridgeToObjectiveC()(<span class="string">&#x27;a&#x27;</span>, <span class="number">0xE100000000000000</span>LL);</span><br><span class="line">   v8 = objc_msgSend(v6, <span class="string">&quot;stringForKey:&quot;</span>, v7);</span><br><span class="line">   v9 = objc_retainAutoreleasedReturnValue(v8);</span><br><span class="line">   objc_release(v6);</span><br><span class="line">   v10(v7);</span><br><span class="line">   <span class="keyword">if</span> ( !v9 )</span><br><span class="line">       BUG();</span><br><span class="line">   v11 = <span class="type">static</span> String._unconditionallyBridgeFromObjectiveC(_:)(v9);</span><br><span class="line">   v13 = v12;</span><br><span class="line">   v14(v9);</span><br><span class="line">   v15 = objc_allocWithZone(&amp;OBJC_CLASS___NSData);</span><br><span class="line">   swift_bridgeObjectRetain(v13);</span><br><span class="line">   v16 = (<span class="type">void</span> *)String._bridgeToObjectiveC()(v11, v13);</span><br><span class="line">   v17 = objc_msgSend(v15, <span class="string">&quot;initWithBase64EncodedString:options:&quot;</span>, v16, <span class="number">0LL</span>);</span><br></pre></td></tr></table></figure></li>
+<li><p>They are passing these 3 values to function <code>cc</code>. </p>
+</li>
+<li><p>Checking the strings section, we get 3 values<br>  <img src="/../images/blockctf2024/image3.png" alt="image3"></p>
+</li>
+<li><p>These values passes through several intermediate functions before it was finally passed to <code>closure #1 in closure #1 in closure #1 in cc(a:b:c:)</code> (not sure why the functions are in English sentences lol) , where this function uses CCCrypt package.<br>  <img src="/../images/blockctf2024/image4.png" alt="image4"></p>
+</li>
+<li><p>We could also see the code,</p>
+  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">result = CCCrypt(<span class="number">1u</span>, <span class="number">0</span>, <span class="number">1u</span>, a3, keyLength, a6, dataIn, dataInLength, (<span class="type">void</span> *)(v16 + <span class="number">32</span>), v18, dataOutMoved);</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>When checking the source code of this <a target="_blank" rel="noopener" href="https://github.com/xybp888/iOS-SDKs/blob/master/iPhoneOS13.0.sdk/usr/include/CommonCrypto/CommonCryptor.h">framework</a> and comparing the arguments we just got,<ul>
+<li>Operation was Decrypt</li>
+<li>Algorithm used is kCCAlgorithmAES</li>
+<li>Uses PKCS7 padding</li>
+</ul>
+</li>
+<li>Based on the values we have, we could say first string is the key, second is the iv and the third one is the encrypted data. </li>
+<li>On decrypting the data with the above information, we get the flag  <figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">from</span> Crypto.Util.Padding <span class="keyword">import</span> unpad</span><br><span class="line"><span class="keyword">from</span> base64 <span class="keyword">import</span> b64decode</span><br><span class="line"></span><br><span class="line">key = b64decode(<span class="string">b&quot;qQwrmkzuhJv6fzCF2XsxuaB+ZBtMEH+Cd3fpTgJpEM8=&quot;</span>)</span><br><span class="line">iv = b64decode(<span class="string">b&quot;FjmNRmlNzMZYK8TbIItuVA==&quot;</span>)</span><br><span class="line">ciphertext = b64decode(<span class="string">b&quot;8XvXFKhm8YFfQShtVXcNZh5F8q0zBJMTnfBSh33SEr8r4hMWb/E2VJq20QO2Byef&quot;</span>)</span><br><span class="line"></span><br><span class="line">cipher = AES.new(key, AES.MODE_CBC, iv)</span><br><span class="line">plaintext = cipher.decrypt(ciphertext)</span><br><span class="line"><span class="built_in">print</span>(plaintext.strip())</span><br></pre></td></tr></table></figure>
+  Flag: <code>flag&#123;congrats_on_swiftly_decoding_this&#125;</code></li>
+</ul>
+<h3 id="Protect-your-API-Key"><a href="#Protect-your-API-Key" class="headerlink" title="Protect your API Key"></a>Protect your API Key</h3><p><strong>Catgeory</strong>: Reversing<br><strong>Points</strong>: 400<br><strong>Solves</strong>: 12</p>
+<ul>
+<li><p>This is a very simple application that has only one activity i.e. <code>MainActivity</code>.</p>
+</li>
+<li><p>The apk also has an asset file <code>8.data</code> whose contents is encrypted.</p>
+</li>
+<li><p>This activity loads a native library <code>libapp.so</code> that has two native functions <code>run</code> and <code>stringFromJNI</code>.</p>
+</li>
+<li><p>The <code>run</code> function is called with <code>Context</code> and a string <code>com.some.real.better.practice.myapplication.RideHailing</code> as arguments.</p>
+</li>
+<li><p>On opening the library in Ghidra, starting with <strong>stringFromJNI</strong>, it just returns 0 (or some random value). </p>
+</li>
+<li><p>On checking <strong>run</strong> function, </p>
+<ul>
+<li>There are numerous string modification steps taking place.</li>
+<li>Methods are being invoked using JNI.</li>
+</ul>
+</li>
+<li><p>This seems like a pain to reverse with over 5.5k lines of code.</p>
+</li>
+<li><p>Lets check the application dynamically, starting with the strings created using <code>env.NewStringUTF()</code> and <code>env.SetByteArrayRegion</code> using <a target="_blank" rel="noopener" href="https://github.com/Ch0pin/medusa">Medusa</a>. </p>
+</li>
+<li><p>We could see numerous strings used. </p>
+<p>  <img src="/../images/blockctf2024/image1.png" alt="image1"></p>
+</li>
+<li><p>As we scroll down through the output, we start to see the juicy part of the challenge like <code>com.some.better.practice.app.MainActivity.getAssets()Landroid/content/res/AssetManager;</code> , <code>javax.crypto.spec.SecretKeySpec.&lt;init&gt;([BLjava/lang/String;)V</code>, <code>AES/ECB/PKCS5Padding</code> and <code>dalvik.system.InMemoryDexClassLoader.&lt;init&gt;(Ljava/nio/ByteBuffer;Ljava/lang/ClassLoader;)V</code> .</p>
+</li>
+<li><p>In simple, they are decrypting the assets file <code>8.data</code> using AES ECB mode with PKCS5Padding and loading the dex file in memory using <code>InMemoryDexClassLoader</code>.</p>
+</li>
+<li><p>The AES key is <strong>gr3443.,g,3-s@[w</strong> . </p>
+</li>
+<li><p>On decrypting the <code>8.data</code> file, we get a dex file.<br>  <img src="/../images/blockctf2024/image2.png" alt="image2"></p>
+</li>
+<li><p>On loading the dex file, we see the class <code>com.some.real.better.practice.myapplication.RideHailing</code> and a decryption function that provides the flag.</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">decryptMsg</span><span class="params">(<span class="type">byte</span>[] cipherText)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    <span class="type">SecretKey</span> <span class="variable">secret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SecretKeySpec</span>(<span class="string">&quot;er34rgr3443.,g,3-09gjs@[wpef9j3j&quot;</span>.getBytes(), <span class="string">&quot;AES&quot;</span>);</span><br><span class="line">    <span class="type">Cipher</span> <span class="variable">cipher</span> <span class="operator">=</span> Cipher.getInstance(<span class="string">&quot;AES/ECB/PKCS5Padding&quot;</span>);</span><br><span class="line">    cipher.init(<span class="number">2</span>, secret);</span><br><span class="line">    <span class="type">String</span> <span class="variable">decryptString</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(cipher.doFinal(cipherText), <span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> decryptString;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">byte</span>[] data = Base64.getDecoder().decode(<span class="string">&quot;9Bmk+Nc8i7oz2+sRYI9Q1fZ/metvBlUzoMMdC2aLstA=&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">api_key</span> <span class="operator">=</span> decryptMsg(data);</span><br><span class="line">        System.out.println(api_key);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Flag: <code>flag&#123;3fh9.gkf29j.7&#125;</code></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
