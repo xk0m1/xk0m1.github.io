@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        k0m1
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            IRATA-Analysis
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p>Here is my first blog post of 2025. Have a great year!</p>
+<p><strong>Sample Details:</strong></p>
+<p>SHA256 Hash: <code>7899ea0aa36bacb8d2f94907373e550cec71d02701107cb2ef3cf629c305f877</code></p>
+<p>Package Name: <code>com.errorforcode.netix</code></p>
+<p>Application Name: <code>بسته معیشت</code></p>
+<h3 id="Analysis"><a href="#Analysis" class="headerlink" title="Analysis"></a>Analysis</h3><ul>
+<li><p>Starting with AndroidManifest.xml, the app has a launcher activity MainActivity, has a Firebase Messaging Service and Receiver, a broadcast receiver to listen for incoming SMS Messages and a service. </p>
+</li>
+<li><p>Looking into MainActivity</p>
+<ul>
+<li>Whole lot of string decryption takes places by reading the values stored in core.txt, acc.txt and ns.txt present in <code>assets</code> folder.</li>
+<li>The entire decryption process is present in this <a target="_blank" rel="noopener" href="https://github.com/xk0m1/misc/blob/main/malware/irata.py">script</a></li>
+<li>In short, this app loads the url <code>https[:]//irna.space/itsOK/app/</code> in a webview. Here is how the website looks like (taken from Wayback Machine)<br>  <img src="/../images/irata/image.png" alt="webview"></li>
+<li>Also it requests for permission related to SMS, Contacts and Phone calls.</li>
+</ul>
+</li>
+<li><p>Broadcast Receiver : <code>GetSMS</code></p>
+<ul>
+<li>works as a receiver for incoming SMS messages</li>
+<li>collects the message content and address of the sender</li>
+<li>sends the incoming intent to start the service <code>SMSService</code></li>
+</ul>
+</li>
+<li><p>Service : <code>SMSService</code></p>
+<ul>
+<li>checks message content to execute commands sent by the attcker<ul>
+<li>ping : device sends a feedback mssg to attacker to notify it is working</li>
+<li>hide : hide the app from the menu</li>
+<li>unhide : unhide the app from menu</li>
+<li>last : collects the last message of the device</li>
+<li>chrome , change : both commands change the icon of the application </li>
+<li>normal : turns the icon back to normal mode</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>This app also has a Firebase Cloud Messaging Service and Receiver that acts as a listener for the attacker to send commands to the device.</p>
+<ul>
+<li><p>Receiver </p>
+<ul>
+<li>intent filter with action : <code>com.google.android.c2dm.intent.RECEIVE</code></li>
+<li>works when the Cloud FCM sends a message to the device</li>
+<li>working is similar to C2 Architecture</li>
+<li>each message contains : action , chat_id and androidid</li>
+</ul>
+</li>
+<li><p>Attacker Commands (defined in Customized FCM Service)</p>
+<ul>
+<li><p>send2contact : attacker will send the text to send, in SendToContact there is a function <code>getContactList</code><br>              that returns list of all phone numbers , both of these information to passed through a series of functions<br>              where finally the text is sent using <code>smsManager.sendTextMessage()</code></p>
+</li>
+<li><p>unhideone : unhide the app icon on the menu</p>
+</li>
+<li><p>allsms : attacker will specify how many sms should be collected. based on that, the app will collect that many mssgs provided by the<br>      content provider <code>content://sms</code> . once concatenated , it will be encrypted and sent back to the server</p>
+</li>
+<li><p>mashatautotar : spam messages to the contacts every n seconds</p>
+</li>
+<li><p>get_clipboard : gets the text present in the clipboard</p>
+</li>
+<li><p>getbalance </p>
+<ul>
+<li>iterates every message present in the device</li>
+<li>detects the bank name (they check for iranian banks like KESHAVARZI, IZBANK , Bank Mellat)</li>
+<li>detect balance from the message (seems iranian banks formats it in weird regex)</li>
+<li>detects account numbers from the body of message (only pattern i could recognize where <code>\\d&#123;3&#125;-\\d&#123;3&#125;-\\d&#123;7&#125;-\\d</code>)</li>
+<li>sends bankname, sender address , balance , date and acc number to the server</li>
+</ul>
+</li>
+<li><p>screenshot: takes screenshot of the device , sends it in encrypted base64 format</p>
+</li>
+<li><p>set_clipboard: using setPrimaryClip function of ClipboardManager, it sets the text provided by the attacker as the primary clip</p>
+</li>
+<li><p>updateport and updatesudo : updates the text present in port.txt and sudo.txt respectively with attacker data</p>
+</li>
+<li><p>lastsms : sends information regarding the last sms in the device</p>
+</li>
+<li><p>updateaddress : updates the domain address of the attacker server</p>
+</li>
+<li><p>ussd : </p>
+<ul>
+<li>USSD code is provided by the attacker</li>
+<li>sends a request using TelephonyManager.sendUssdRequest()</li>
+<li>when response is successful (due to onReceiveUssdResponse handler) , it sends USSD response to the attacker</li>
+</ul>
+</li>
+<li><p>contactnumbers and allcontact</p>
+<ul>
+<li>collect name and phone number from the list of contacts , encrypt the data and send it to the server</li>
+</ul>
+</li>
+<li><p>cardnumbers</p>
+<ul>
+<li>gets all the sms , checks the content of the message body with a extensive regex that checks for pattern that starts with 4 digit number<br>  followed by 12 digits</li>
+</ul>
+<p>  <img src="/../images/irata/cardnumbers.png" alt="cardnumbers"></p>
+<ul>
+<li>the messages that passes the check are passed to a function to collect the bank info based on the card number</li>
+</ul>
+</li>
+<li><p>fullinfo</p>
+<ul>
+<li>collects info whether the app has read sms , receive sms , send sms , read contacts , and notification permissions and send all these<br>  info to the server</li>
+</ul>
+</li>
+<li><p>allsaderats</p>
+<ul>
+<li>specifically for messages from Bank Saderat Iran</li>
+<li>tries to collect account number and balance from the message sent by the above bank (has a different regex pattern)</li>
+</ul>
+<p>  <img src="/../images/irata/saderat.png" alt="saderat"></p>
+</li>
+<li><p>getphone: collects the phone numbers available and checks if the phone code is iran (+98)</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>This was an intersting sample to analyze. This was also the first time seeing Messages and Cloud FCM functionality to send attacker commands. I had a lot of fun analyzing this sample.</p>
+<p>GG’s &lt;3</p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
