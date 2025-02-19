@@ -82,19 +82,19 @@
 </li>
 <li><p>unhideone : unhide the app icon on the menu</p>
 </li>
-<li><p>allsms : attacker will specify how many sms should be collected. based on that, the app will collect that many mssgs provided by the<br>      content provider <code>content://sms</code> . once concatenated , it will be encrypted and sent back to the server</p>
+<li><p>allsms : Attacker will specify how many sms should be collected. based on that, the app will collect that many mssgs provided by the<br>      content provider <code>content://sms</code> . once concatenated , it will be encrypted and sent back to the server</p>
 </li>
-<li><p>mashatautotar : spam messages to the contacts every n seconds</p>
+<li><p>mashatautotar : Spam messages to the contacts every n seconds</p>
 </li>
-<li><p>get_clipboard : gets the text present in the clipboard</p>
+<li><p>get_clipboard : Gets the text present in the clipboard</p>
 </li>
 <li><p>getbalance </p>
 <ul>
-<li>iterates every message present in the device</li>
-<li>detects the bank name (they check for iranian banks like KESHAVARZI, IZBANK , Bank Mellat)</li>
+<li>Iterates every message present in the device</li>
+<li>detects the bank name (they check for Iran based banks like KESHAVARZI, IZBANK , Bank Mellat)</li>
 <li>detect balance from the message (seems iranian banks formats it in weird regex)</li>
 <li>detects account numbers from the body of message (only pattern i could recognize where <code>\\d&#123;3&#125;-\\d&#123;3&#125;-\\d&#123;7&#125;-\\d</code>)</li>
-<li>sends bankname, sender address , balance , date and acc number to the server</li>
+<li>Sends bankname, sender address , balance , date and acc number to the server</li>
 </ul>
 </li>
 <li><p>screenshot: takes screenshot of the device , sends it in encrypted base64 format</p>
@@ -110,37 +110,36 @@
 <li><p>ussd : </p>
 <ul>
 <li>USSD code is provided by the attacker</li>
-<li>sends a request using TelephonyManager.sendUssdRequest()</li>
-<li>when response is successful (due to onReceiveUssdResponse handler) , it sends USSD response to the attacker</li>
+<li>Sends a request using TelephonyManager.sendUssdRequest(), and when the response is successful (due to onReceiveUssdResponse handler) , it sends USSD response to the attacker</li>
 </ul>
 </li>
 <li><p>contactnumbers and allcontact</p>
 <ul>
-<li>collect name and phone number from the list of contacts , encrypt the data and send it to the server</li>
+<li>Collect name and phone number from the list of contacts , encrypt the data and send it to the server</li>
 </ul>
 </li>
 <li><p>cardnumbers</p>
 <ul>
-<li>gets all the sms , checks the content of the message body with a extensive regex that checks for pattern that starts with 4 digit number<br>  followed by 12 digits</li>
+<li>Gets all SMS and checks the content of the message body with a extensive regex that checks for pattern that starts with 4 digit number<br>  followed by 12 digits</li>
 </ul>
 <p>  <img src="/../images/irata/cardnumbers.png" alt="cardnumbers"></p>
 <ul>
-<li>the messages that passes the check are passed to a function to collect the bank info based on the card number</li>
+<li>The messages that passes this check are passed to a function to collect the bank info based on the card number</li>
 </ul>
 </li>
 <li><p>fullinfo</p>
 <ul>
-<li>collects info whether the app has read sms , receive sms , send sms , read contacts , and notification permissions and send all these<br>  info to the server</li>
+<li>Collects info whether the app has read sms , receive sms , send sms , read contacts , and notification permissions and send all these<br>  info to the server</li>
 </ul>
 </li>
 <li><p>allsaderats</p>
 <ul>
-<li>specifically for messages from Bank Saderat Iran</li>
-<li>tries to collect account number and balance from the message sent by the above bank (has a different regex pattern)</li>
+<li>Specifically for messages from Bank Saderat Iran</li>
+<li>Tries to collect account number and balance from the message sent by the above bank (has a different regex pattern)</li>
 </ul>
 <p>  <img src="/../images/irata/saderat.png" alt="saderat"></p>
 </li>
-<li><p>getphone: collects the phone numbers available and checks if the phone code is iran (+98)</p>
+<li><p>getphone: Collects the phone numbers available and checks if the phone code is based of Iran (+98)</p>
 </li>
 </ul>
 </li>
